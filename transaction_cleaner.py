@@ -1,6 +1,5 @@
 import pandas as pd
 import numpy as np
-import requests
 import re
 
 """
@@ -31,29 +30,29 @@ def split_lease(x):
 
         return round(remaining,2)
 
-datagov_api = "https://data.gov.sg/api/action/datastore_search?resource_id=f1765b54-a209-4718-8d38-a39237f502b3&limit=400000"
+def cleaner(data):
+    #Convert string to month
+    data['month'] = pd.to_datetime(data['month'])
 
-#Query the API for the latest dataset
-df = pd.DataFrame(requests.get(datagov_api).json()['result']['records'])
+    #Convert resale price and floor area to int
+    data['resale_price'] = data['resale_price'].astype(float).round(0).astype(int)
+    data['floor_area_sqm'] = data['floor_area_sqm'].astype(float)
 
-#Convert string to month
-df['month'] = pd.to_datetime(df['month'])
+    #Convert floor area from sq metres to sq foot (more commonly used)
+    data['floor_area_sqft'] = data['floor_area_sqm'].apply(lambda x: x*10.7639).round(2)
+    data.drop('floor_area_sqm',axis=1,inplace=True)
+        
+    #Convert remaining lease to years
+    data['remaining_lease'] = data['remaining_lease'].apply(split_lease)
 
-#Convert resale price and floor area to int
-df['resale_price'] = df['resale_price'].astype(float).round(0).astype(int)
-df['floor_area_sqm'] = df['floor_area_sqm'].astype(float)
+    #Add resale price per square metre
+    data['psf'] = data['resale_price']/data['floor_area_sqft']
 
-#Convert floor area from sq metres to sq foot (more commonly used)
-df['floor_area_sqft'] = df['floor_area_sqm'].apply(lambda x: x*10.7639).round(2)
-df.drop('floor_area_sqm',axis=1,inplace=True)
-    
-#Convert remaining lease to years
-df['remaining_lease'] = df['remaining_lease'].apply(split_lease)
+    #Rename columns
+    data = data.rename(columns={'street_name':'street', 'month':'transaction_month'})
 
-#Add resale price per square metre
-df['psf'] = df['resale_price']/df['floor_area_sqft']
+    #Reorder columns
+    data = data.reindex(columns=['transaction_month','town','street','block','flat_type','flat_model','floor_area_sqft','storey_range','lease_commence_date','remaining_lease','resale_price','psf'])
+    data = data.reset_index(drop=True)
 
-#Rename columns
-df.rename(columns={'street_name':'street'},inplace=True)
-
-#Output to transaction table
+    return data
