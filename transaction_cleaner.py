@@ -30,7 +30,7 @@ def split_lease(x):
 
         return round(remaining,2)
 
-def cleaner(data):
+def hdb_cleaner(data):
     #Convert string to month
     data['month'] = pd.to_datetime(data['month'])
 
@@ -56,3 +56,11 @@ def cleaner(data):
     data = data.reset_index(drop=True)
 
     return data
+
+def ura_cleaner(data):
+    column_rename_map = {"area":"floor_area_sqft","floorRange":"storey_range","noOfUnits":"num_units",
+    "contractDate":"transaction_month","typeOfSale":"transaction_type","propertyType":"property_type",
+    "typeOfArea":"area_type","marketSegment":"market_segment","median":"median_psf",
+    "psf75":"75_percentile_psf","psf25":"25_percentile_psf","refPeriod":"quarter",
+    "areaSqm":"floor_area_range_sqm","areaSqft":"floor_area_range_sqft","noOfBedRoom":"num_bedrooms",
+    "rent":"rental_price",""}

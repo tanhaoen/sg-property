@@ -13,10 +13,10 @@ class AzureConn:
     
     def __init__(self,
     database,
-    servername='nathaniel-tan-single',
+    servername='nathaniel-tan-mysql',
     user='nathaniel',
     password='PcPZw64^'):
-        self.config = f"mysql+mysqlconnector://{user}%40{servername}:{password}@{servername}.mysql.database.azure.com:3306/{database}"
+        self.config = f"mysql+mysqlconnector://{user}:{password}@{servername}.mysql.database.azure.com:3306/{database}"
         print(self.config)
         self.init_connect()
     
@@ -39,12 +39,12 @@ class AzureConn:
         query_frame = pd.read_sql(querystr, self.conn)
         return query_frame
 
-    def append(self, data, tblname, **kwargs):
+    def df_to_table(self, data, tblname, **kwargs):
         try:
             data.to_sql(tblname, con=self.conn, if_exists='append', index=False, **kwargs)
-            print(f"Data appended to table {tblname}")
+            print(f"Data added to table {tblname}")
         except Exception:
-            print("Error occurred while appending data")
+            print("Error occurred while adding data")
 
     def delete(self, tblname, whereclause):
         sql = f"DELETE FROM {tblname} WHERE {whereclause}"
